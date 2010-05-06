@@ -16,6 +16,7 @@
 - (void)dealloc {
   [rootController release];
   [window release];
+  [waiting release];
   [super dealloc];
 }
 
