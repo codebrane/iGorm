@@ -154,7 +154,7 @@ BOOL finished;
   
   NSString *answer;
   NSScanner *myScanner = [NSScanner scannerWithString:urlContents];
-  while (! [myScanner isAtEnd]) {
+  while (![myScanner isAtEnd]) {
     if ([myScanner scanUpToString:@"T2,Stat,  TH" intoString:NULL] &&
         [myScanner scanUpToString:@"</B>" intoString:NULL] &&
         [myScanner scanUpToString:@"</pre>" intoString:&answer]) {
@@ -246,6 +246,8 @@ BOOL finished;
     }
   }
   
+  [urlContents release];
+  
   averageTemperatureReadings = [[NSArray alloc] initWithArray:averageTemperatureReadingsTemp];
   meanWindReadings = [[NSArray alloc] initWithArray:meanWindReadingsTemp];
   gustWindReadings = [[NSArray alloc] initWithArray:gustWindReadingsTemp];
@@ -260,7 +262,7 @@ BOOL finished;
   
   NSString *answer;
   NSScanner *myScanner = [NSScanner scannerWithString:urlContents];
-  while (! [myScanner isAtEnd]) {
+  while (![myScanner isAtEnd]) {
     if ([myScanner scanUpToString:@"T2,Stat,  TH" intoString:NULL] &&
         [myScanner scanUpToString:@"</B>" intoString:NULL] &&
         [myScanner scanUpToString:@"</pre>" intoString:&answer]) {
@@ -301,10 +303,14 @@ BOOL finished;
             endDate = [NSString stringWithFormat:@"%@", date];
             endTime = [NSString stringWithFormat:@"%@", [temp objectAtIndex:2]];
           }
+          
+          [temp release];
           count++;
-        }
-      }
-    }
+        } // if ([temps length] > 2)
+      } // for (int i=0; i < noOfReadings; i++)
+    } // while (![myScanner isAtEnd])
+    
+    [urlContents release];
   }
   
   return readingData2;
