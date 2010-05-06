@@ -43,6 +43,7 @@
 }
 
 - (void)dealloc {
+  [activity release];
   [super dealloc];
 }
 
