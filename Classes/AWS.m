@@ -78,7 +78,9 @@ BOOL finished;
 		NSArray* parts = [string componentsSeparatedByString:@"."];
 		NSString* buffer = [parts objectAtIndex:0];
 		buffer = [buffer stringByReplacingOccurrencesOfString:@"AWS Report issued at " withString:@""];
-		reportTime = [[NSString alloc] initWithString:buffer];
+    NSString *reportTimeHolder = [[NSString alloc] initWithString:buffer];
+		self.reportTime = reportTimeHolder;
+    [reportTimeHolder release];
 		
 		// status
 		parts = [string componentsSeparatedByString:@"AWS Status - "];
@@ -86,7 +88,9 @@ BOOL finished;
 		buffer = [parts objectAtIndex:1];
 		parts = [buffer componentsSeparatedByString:@"."];
 		buffer = [parts objectAtIndex:0];
-    reportStatus = [[NSString alloc] initWithString:buffer];
+    NSString *reportStatusHolder = [[NSString alloc] initWithString:buffer];
+    self.reportStatus = reportStatusHolder;
+    [reportStatusHolder release];
 		
 		// Latest reading
 		parts = [string componentsSeparatedByString:@"Latest reading at "];
@@ -95,7 +99,9 @@ BOOL finished;
 		parts = [buffer componentsSeparatedByString:@"Temperature"];
 		buffer = [parts objectAtIndex:0];
 		buffer = [buffer stringByReplacingOccurrencesOfString:@"  " withString:@" "];
-		latestReading = [[NSString alloc] initWithString:buffer];
+    NSString *latestReadingHolder = [[NSString alloc] initWithString:buffer];
+		self.latestReading = latestReadingHolder;
+    [latestReadingHolder release];
 		
 		// Temperature
 		parts = [string componentsSeparatedByString:@"Temperature"];
@@ -103,7 +109,9 @@ BOOL finished;
 		buffer = [parts objectAtIndex:1];
 		parts = [buffer componentsSeparatedByString:@","];
 		buffer = [parts objectAtIndex:0];
-    temperature = [[NSString alloc] initWithString:buffer];
+    NSString *temperatureHolder = [[NSString alloc] initWithString:buffer];
+    self.temperature = temperatureHolder;
+    [temperatureHolder release];
 		
 		// Mean Windspeed
 		parts = [string componentsSeparatedByString:@"Mean Windspeed"];
@@ -111,7 +119,9 @@ BOOL finished;
 		buffer = [parts objectAtIndex:1];
 		parts = [buffer componentsSeparatedByString:@","];
 		buffer = [parts objectAtIndex:0];
-    meanWindSpeed = [[NSString alloc] initWithString:buffer];
+    NSString *meanWindSpeedHolder = [[NSString alloc] initWithString:buffer];
+    self.meanWindSpeed = meanWindSpeedHolder;
+    [meanWindSpeedHolder release];
 		
 		// Gust Windspeed
 		parts = [string componentsSeparatedByString:@"Gust Windspeed"];
@@ -119,7 +129,9 @@ BOOL finished;
 		buffer = [parts objectAtIndex:1];
 		parts = [buffer componentsSeparatedByString:@","];
 		buffer = [parts objectAtIndex:0];
-    gustWindSpeed = [[NSString alloc] initWithString:buffer];
+    NSString *gustWindSpeedHolder = [[NSString alloc] initWithString:buffer];
+    self.gustWindSpeed = gustWindSpeedHolder;
+    [gustWindSpeedHolder release];
 		
 		finished = YES;
   }
@@ -141,19 +153,18 @@ BOOL finished;
   [months setObject:[NSNumber numberWithInt:11] forKey:@"Nov"];
   [months setObject:[NSNumber numberWithInt:12] forKey:@"Dec"];
   
-  NSURL *url = [NSURL URLWithString: @"http://www.phy.hw.ac.uk/resrev/aws/new_aws_data.htm"];
-  NSError *error;
+  NSURL *url = [[NSURL alloc] initWithString:@"http://www.phy.hw.ac.uk/resrev/aws/new_aws_data.htm"];
   
   NSMutableArray *awsReadingsTemp = [NSMutableArray array];
-  
   NSMutableArray *averageTemperatureReadingsTemp = [NSMutableArray array];
   NSMutableArray *meanWindReadingsTemp = [NSMutableArray array];
   NSMutableArray *gustWindReadingsTemp = [NSMutableArray array];
   
-  NSString *urlContents = [[[NSString alloc] initWithContentsOfURL:url encoding:NSUTF8StringEncoding error:&error] autorelease];
+  NSError *error;
+  NSString *urlContents = [[NSString alloc] initWithContentsOfURL:url encoding:NSUTF8StringEncoding error:&error];
   
   NSString *answer;
-  NSScanner *myScanner = [NSScanner scannerWithString:urlContents];
+  NSScanner *myScanner = [[NSScanner alloc] initWithString:urlContents];
   while (![myScanner isAtEnd]) {
     if ([myScanner scanUpToString:@"T2,Stat,  TH" intoString:NULL] &&
         [myScanner scanUpToString:@"</B>" intoString:NULL] &&
@@ -168,8 +179,8 @@ BOOL finished;
       // 13 Mar, 73,  1248,   0,   0,   0,  90,   0,   15.8,   18.7, 1+1, 15.7
       
       int noOfReadings = [readingData count];
-      NSString *latestDate;
       int count = 0;
+      
       for (int i=0; i < noOfReadings; i++) {
         NSString *temps = [readingData objectAtIndex:i];
         if ([temps length] > 2) {
@@ -188,9 +199,9 @@ BOOL finished;
           int meanWind = [(NSString*)[temp objectAtIndex:3] intValue];
           int gustWind = [(NSString*)[temp objectAtIndex:4] intValue];
           
-          NSNumber *nAverageTemp = [NSNumber numberWithInt:averageTemp];
-          NSNumber *nMeanWind = [NSNumber numberWithInt:meanWind];
-          NSNumber *nGustWind = [NSNumber numberWithInt:gustWind];
+          NSNumber *nAverageTemp = [[NSNumber alloc] initWithInt:averageTemp];
+          NSNumber *nMeanWind = [[NSNumber alloc] initWithInt:meanWind];
+          NSNumber *nGustWind = [[NSNumber alloc] initWithInt:gustWind];
           
           AWSReading *awsReading = [[AWSReading alloc] init];
           
@@ -211,6 +222,8 @@ BOOL finished;
           [components setMinute:[minute intValue]];
           NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
           awsReading.readingDate = [gregorian dateFromComponents:components];
+          [components release];
+          [gregorian release];
           
           awsReading.julianDay = [temp objectAtIndex:1];
           awsReading.meanWindSpeed = [temp objectAtIndex:3];
@@ -222,46 +235,93 @@ BOOL finished;
           
           NSString *date = [temp objectAtIndex:0];
           if (count == 0) {
-            maxTemperature = [NSNumber numberWithInt:averageTemp];
-            minTemperature = [NSNumber numberWithInt:averageTemp];
-            latestDate = [[NSString alloc] initWithFormat:@"%@", date];
+            NSNumber *maxTemperatureHolder = [[NSNumber alloc] initWithInt:averageTemp];
+            self.maxTemperature = maxTemperatureHolder;
+            [maxTemperatureHolder release];
+            
+            NSNumber *minTemperatureHolder = [[NSNumber alloc] initWithInt:averageTemp];
+            self.minTemperature = minTemperatureHolder;
+            [minTemperatureHolder release];
+            
             // Readings are reverse chronological
-            endDate = [[NSString alloc] initWithFormat:@"%@", date];
-            endTime = [[NSString alloc] initWithFormat:@"%@", [temp objectAtIndex:2]];
+            NSString *endDateHolder = [[NSString alloc] initWithFormat:@"%@", date];
+            self.endDate = endDateHolder;
+            [endDateHolder release];
+            
+            NSString *endTimeHolder = [[NSString alloc] initWithFormat:@"%@", [temp objectAtIndex:2]];
+            self.endTime = endTimeHolder;
+            [endTimeHolder release];
           }
           else {
-            if ([nAverageTemp compare:maxTemperature] == NSOrderedDescending) maxTemperature = [NSNumber numberWithInt:averageTemp];
-            if ([nAverageTemp compare:minTemperature] == NSOrderedAscending) minTemperature = [NSNumber numberWithInt:averageTemp];
+            if ([nAverageTemp compare:maxTemperature] == NSOrderedDescending) {
+              NSNumber *maxTemperatureHolder = [[NSNumber alloc] initWithInt:averageTemp];
+              self.maxTemperature = maxTemperatureHolder;
+              [maxTemperatureHolder release];
+            }
+            if ([nAverageTemp compare:minTemperature] == NSOrderedAscending) {
+              NSNumber *minTemperatureHolder = [[NSNumber alloc] initWithInt:averageTemp];
+              self.minTemperature = minTemperatureHolder;
+              [minTemperatureHolder release];
+            }
           }
           
           [averageTemperatureReadingsTemp addObject:nAverageTemp];
           [meanWindReadingsTemp addObject:nMeanWind];
           [gustWindReadingsTemp addObject:nGustWind];
           
-          startDate = [[NSString alloc] initWithFormat:@"%@", date];
-          startTime = [[NSString alloc] initWithFormat:@"%@", [temp objectAtIndex:2]];
+          NSString *startDateHolder = [[NSString alloc] initWithFormat:@"%@", date];
+          self.startDate = startDateHolder;
+          [startDateHolder release];
+          
+          NSString *startTimeHolder = [[NSString alloc] initWithFormat:@"%@", [temp objectAtIndex:2]];
+          self.startTime = startTimeHolder;
+          [startTimeHolder release];
+          
+          [nAverageTemp release];
+          [nMeanWind release];
+          [nGustWind release];
+          
           count++;
         } // if ([temps length] > 2) {
-      }
-    }
-  }
+      } // for (int i=0; i < noOfReadings; i++)
+      
+      [readingData release];
+    } // if ([myScanner scanUpToString:@"T2,Stat,  TH" intoString:NULL] &&
+  } // while (![myScanner isAtEnd])
   
+  NSArray *averageTemperatureReadingsHolder = [[NSArray alloc] initWithArray:averageTemperatureReadingsTemp];
+  self.averageTemperatureReadings = averageTemperatureReadingsHolder;
+  [averageTemperatureReadingsHolder release];
+  
+  NSArray *meanWindReadingsHolder = [[NSArray alloc] initWithArray:meanWindReadingsTemp];
+  self.meanWindReadings = meanWindReadingsHolder;
+  [meanWindReadingsHolder release];
+  
+  NSArray *gustWindReadingsHolder = [[NSArray alloc] initWithArray:gustWindReadingsTemp];
+  self.gustWindReadings = gustWindReadingsHolder;
+  [gustWindReadingsHolder release];
+  
+  NSArray *awsReadingsHolder = [[NSArray alloc] initWithArray:[[awsReadingsTemp reverseObjectEnumerator] allObjects]];
+  self.awsReadings = awsReadingsHolder;
+  [awsReadingsHolder release];
+  
+  [myScanner release];
+  [months release];
+  [url release];
   [urlContents release];
-  
-  averageTemperatureReadings = [[NSArray alloc] initWithArray:averageTemperatureReadingsTemp];
-  meanWindReadings = [[NSArray alloc] initWithArray:meanWindReadingsTemp];
-  gustWindReadings = [[NSArray alloc] initWithArray:gustWindReadingsTemp];
-  awsReadings = [[NSArray alloc] initWithArray:[[awsReadingsTemp reverseObjectEnumerator] allObjects]];
 }
 
 - (NSArray *)getTemperatureData {
-  NSURL *url = [NSURL URLWithString: @"http://www.phy.hw.ac.uk/resrev/aws/new_aws_data.htm"];
-  NSError *error;
+  NSURL *url = [[NSURL alloc] initWithString:@"http://www.phy.hw.ac.uk/resrev/aws/new_aws_data.htm"];
+  
   NSMutableArray *readingData2 = [NSMutableArray array];
+  
+  NSError *error;
   NSString *urlContents = [[[NSString alloc] initWithContentsOfURL:url encoding:NSUTF8StringEncoding error:&error] autorelease];
   
   NSString *answer;
-  NSScanner *myScanner = [NSScanner scannerWithString:urlContents];
+  NSScanner *myScanner = [[NSScanner alloc] initWithString:urlContents];
+  
   while (![myScanner isAtEnd]) {
     if ([myScanner scanUpToString:@"T2,Stat,  TH" intoString:NULL] &&
         [myScanner scanUpToString:@"</B>" intoString:NULL] &&
@@ -276,42 +336,74 @@ BOOL finished;
       // 13 Mar, 73,  1248,   0,   0,   0,  90,   0,   15.8,   18.7, 1+1, 15.7
       
       int noOfReadings = [readingData count];
-      NSString *latestDate;
       int count = 0;
+      
       for (int i=0; i < noOfReadings; i++) {
         NSString *temps = [readingData objectAtIndex:i];
         if ([temps length] > 2) {
           NSArray *temp = [[NSArray alloc] initWithArray:[temps componentsSeparatedByString:@","]];
           int averageTemp = ([(NSString*)[temp objectAtIndex:8] intValue] + [(NSString*)[temp objectAtIndex:9] intValue]) / 2;
-          NSNumber *nAverageTemp = [NSNumber numberWithInt:averageTemp];
+          
+          NSNumber *nAverageTemp = [[NSNumber alloc] initWithInt:averageTemp];
           NSString *date = [temp objectAtIndex:0];
+          
           if (count == 0) {
-            maxTemperature = [NSNumber numberWithInt:averageTemp];
-            minTemperature = [NSNumber numberWithInt:averageTemp];
-            latestDate = [NSString stringWithFormat:@"%@", date];
-            startDate = [NSString stringWithFormat:@"%@", date];
-            startTime = [NSString stringWithFormat:@"%@", [temp objectAtIndex:2]];
+            NSNumber *maxTemperatureHolder = [[NSNumber alloc] initWithInt:averageTemp];
+            self.maxTemperature = maxTemperatureHolder;
+            [maxTemperatureHolder release];
+            
+            NSNumber *minTemperatureHolder = [[NSNumber alloc] initWithInt:averageTemp];
+            self.minTemperature = minTemperatureHolder;
+            [minTemperatureHolder release];
+            
+            NSString *startDateHolder = [[NSString alloc] initWithFormat:@"%@", date];
+            self.startDate = startDateHolder;
+            [startDateHolder release];
+            
+            NSString *startTimeHolder = [[NSString alloc] initWithFormat:@"%@", [temp objectAtIndex:2]];
+            self.startTime = startTimeHolder;
+            [startTimeHolder release];
           }
           else {
-            if ([nAverageTemp compare:maxTemperature] == NSOrderedDescending) maxTemperature = [NSNumber numberWithInt:averageTemp];
-            if ([nAverageTemp compare:minTemperature] == NSOrderedAscending) minTemperature = [NSNumber numberWithInt:averageTemp];
+            if ([nAverageTemp compare:maxTemperature] == NSOrderedDescending) {
+              NSNumber *maxTemperatureHolder = [[NSNumber alloc] initWithInt:averageTemp];
+              self.maxTemperature = maxTemperatureHolder;
+              [maxTemperatureHolder release];
+            }
+            
+            if ([nAverageTemp compare:minTemperature] == NSOrderedAscending) {
+              NSNumber *minTemperatureHolder = [[NSNumber alloc] initWithInt:averageTemp];
+              self.minTemperature = minTemperatureHolder;
+              [minTemperatureHolder release];
+            }
           }
-          
+       
           [readingData2 addObject:nAverageTemp];
           
           if (count == (noOfReadings - 1)) {
-            endDate = [NSString stringWithFormat:@"%@", date];
-            endTime = [NSString stringWithFormat:@"%@", [temp objectAtIndex:2]];
+            NSString *endDateHolder = [[NSString alloc] initWithFormat:@"%@", date];
+            self.endDate = endDateHolder;
+            [endDateHolder release];
+            
+            NSString *endTimeHolder = [[NSString alloc] initWithFormat:@"%@", [temp objectAtIndex:2]];
+            self.endTime = endTimeHolder;
+            [endTimeHolder release];
           }
           
           [temp release];
+          [nAverageTemp release];
+          
           count++;
         } // if ([temps length] > 2)
       } // for (int i=0; i < noOfReadings; i++)
-    } // while (![myScanner isAtEnd])
+      
+      [readingData release];
+    } // if ([myScanner scanUpToString:@"T2,Stat,  TH" intoString:NULL] &&
     
+    [url release];
     [urlContents release];
-  }
+    [myScanner release];
+  } // while (![myScanner isAtEnd])
   
   return readingData2;
 }
