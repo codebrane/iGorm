@@ -10,6 +10,9 @@ Introduction
 
 Building
 --------
+iGorm uses core-plot to display weather graphs so before you can build iGorm
+you need to add the core-plot framework according to the instructions on
+the core-plot wiki:
 http://code.google.com/p/core-plot/wiki/UsingCorePlotInApplications
 
 More information
