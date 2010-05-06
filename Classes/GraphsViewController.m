@@ -49,6 +49,10 @@
 }
 
 - (void)dealloc {
+  [readingsRangeLabel release];
+  [statusLabel release];
+  [readingTypeControl release];
+  [readingView release];
   [super dealloc];
 }
 
