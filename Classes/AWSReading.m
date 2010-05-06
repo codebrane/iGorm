@@ -10,4 +10,15 @@
 @synthesize windDirection;
 @synthesize averageTemperature;
 
+-(void)dealloc {
+  [readingDate release];
+  [julianDay release];
+  [meanWindSpeed release];
+  [maxWindSpeed release];
+  [minWindSpeed release];
+  [windDirection release];
+  [averageTemperature release];
+  [super dealloc];
+}
+
 @end
