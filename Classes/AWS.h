@@ -6,7 +6,7 @@ typedef enum {
   kIntegrityPageNotFound
 } Integrity;
 
-@interface AWS : NSObject {
+@interface AWS : NSObject <NSXMLParserDelegate> {
   // Integrity check
   NSInteger integrityStatus;
   
