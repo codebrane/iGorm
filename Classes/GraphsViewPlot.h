@@ -11,7 +11,7 @@ typedef enum {
 @interface GraphsViewPlot : UIView <CPPlotDataSource> {
   NSInteger type;
   UIActivityIndicatorView *activityIndicator;
-  CPLayerHostingView *chartView;
+  CPGraphHostingView *chartView;
   CPXYGraph *graph;
   NSArray *data;
 }
