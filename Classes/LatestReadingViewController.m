@@ -46,7 +46,7 @@ NSArray *sectionNames;
       [cell textLabel].text = aws.reportTime;
       break;
     case 1:
-      [cell textLabel].text = aws.status;
+      [cell textLabel].text = aws.reportStatus;
       break;
     case 2:
       [cell textLabel].text = aws.latestReading;
