@@ -28,7 +28,7 @@
     [appDelegate.window insertSubview:appDelegate.rootController.view atIndex:0];
   }
   else {
-    ErrorViewController *errorController = [[ErrorViewController alloc] initWithNibName:@"ErrorView" bundle:nil];
+    ErrorViewController *errorController = [[[ErrorViewController alloc] initWithNibName:@"ErrorView" bundle:nil] autorelease];
     [appDelegate.window insertSubview:errorController.view atIndex:0];
   }
   
