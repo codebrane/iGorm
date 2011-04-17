@@ -41,7 +41,7 @@
   if (self = [super initWithCoder:(NSCoder *)aDecoder]) {
     self.type = kReadingViewTypeTemperature;
     CGRect frame = self.bounds;
-    chartView = [[CPLayerHostingView alloc] initWithFrame: frame];
+    chartView = [[CPGraphHostingView alloc] initWithFrame: frame];
     [self addSubview:chartView];
   }
   return self;
@@ -56,8 +56,8 @@
 -(void)drawRect:(CGRect)rect {
   graph = [[CPXYGraph alloc] initWithFrame: chartView.bounds];
   
-  CPLayerHostingView *hostingView = (CPLayerHostingView *)chartView;
-  hostingView.hostedLayer = graph;
+  CPGraphHostingView *hostingView = (CPGraphHostingView *)chartView;
+  hostingView.hostedGraph = graph;
   graph.paddingLeft = 40.0;
   graph.paddingTop = 30.0;
   graph.paddingRight = 30.0;
@@ -99,7 +99,7 @@
   lineStyle.lineWidth = 2.0f;
   
   NSTimeInterval oneDay = 24 * 60 * 60;
-  NSTimeInterval halfDay = 12 * 60 * 60;
+//  NSTimeInterval halfDay = 12 * 60 * 60;
   axisSet.xAxis.majorIntervalLength = CPDecimalFromFloat(oneDay);
   
   axisSet.xAxis.orthogonalCoordinateDecimal = CPDecimalFromString(@"0");
@@ -115,7 +115,7 @@
   
   NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init] autorelease];
   dateFormatter.dateStyle = kCFDateFormatterShortStyle;
-  NSLocale *ukLocale = [[NSLocale alloc] initWithLocaleIdentifier:@"en_UK"];
+  NSLocale *ukLocale = [[[NSLocale alloc] initWithLocaleIdentifier:@"en_UK"] autorelease];
   [dateFormatter setLocale:ukLocale];
   CPTimeFormatter *timeFormatter = [[[CPTimeFormatter alloc] initWithDateFormatter:dateFormatter] autorelease];
   timeFormatter.referenceDate = start.readingDate;
