@@ -39,7 +39,8 @@ BOOL finished;
 }
 
 - (void)loadCurrentStatus {
-  NSXMLParser* parser = [[NSXMLParser alloc] initWithContentsOfURL:[NSURL URLWithString:@"http://www.phy.hw.ac.uk/resrev/aws/AWSRSS.xml"]];
+//  NSXMLParser* parser = [[NSXMLParser alloc] initWithContentsOfURL:[NSURL URLWithString:@"http://www.phy.hw.ac.uk/resrev/aws/AWSRSS.xml"]];
+  NSXMLParser* parser = [[NSXMLParser alloc] initWithContentsOfURL:[NSURL URLWithString:@"http://cairngormweather.eps.hw.ac.uk/AWSRSS.xml"]];
 	[parser setDelegate:self];
 	[parser parse];
 	[parser release];
@@ -163,13 +164,13 @@ BOOL finished;
   NSError *error;
   NSString *urlContents = [[NSString alloc] initWithContentsOfURL:url encoding:NSUTF8StringEncoding error:&error];
   
-  NSString *answer;
+  NSString *latestReadingsTextBlock;
   NSScanner *myScanner = [[NSScanner alloc] initWithString:urlContents];
   while (![myScanner isAtEnd]) {
     if ([myScanner scanUpToString:@"T2,Stat,  TH" intoString:NULL] &&
         [myScanner scanUpToString:@"</B>" intoString:NULL] &&
-        [myScanner scanUpToString:@"</pre>" intoString:&answer]) {
-      NSString *data = [answer stringByReplacingOccurrencesOfString: @"</B>" withString: @""];
+        [myScanner scanUpToString:@"</pre>" intoString:&latestReadingsTextBlock]) {
+      NSString *data = [latestReadingsTextBlock stringByReplacingOccurrencesOfString: @"</B>" withString: @""];
       data = [data stringByReplacingOccurrencesOfString: @"</pre>" withString: @""];
       data = [data stringByReplacingOccurrencesOfString: @" " withString: @""];
       
@@ -180,24 +181,28 @@ BOOL finished;
       
       int noOfReadings = [readingData count];
       int count = 0;
+      bool first = true;
       
       for (int i=0; i < noOfReadings; i++) {
-        NSString *temps = [readingData objectAtIndex:i];
-        if ([temps length] > 2) {
-          NSArray *temp = [[NSArray alloc] initWithArray:[temps componentsSeparatedByString:@","]];
+        NSString *dataLine = [readingData objectAtIndex:i];
+        if ([dataLine length] > 2) {
+          NSArray *dataLineParts = [[NSArray alloc] initWithArray:[dataLine componentsSeparatedByString:@","]];
           
           // First reading is the latest, so use that for the latest status
-          NSString *statustemp = [temp objectAtIndex:10];
-          if ([statustemp isEqual:@"1+2"]) {
-            status = @"Status : Normal";
-          }
-          else {
-            status = @"Status : FAULT";
+          if (first) {
+            NSString *statustemp = [dataLineParts objectAtIndex:10];
+            if ([statustemp isEqual:@"1+2"]) {
+              status = @"Status : Normal";
+            }
+            else {
+              status = @"Status : FAULT";
+            }
+            first = false;
           }
           
-          int averageTemp = ([(NSString*)[temp objectAtIndex:8] intValue] + [(NSString*)[temp objectAtIndex:9] intValue]) / 2;
-          int meanWind = [(NSString*)[temp objectAtIndex:3] intValue];
-          int gustWind = [(NSString*)[temp objectAtIndex:4] intValue];
+          int averageTemp = ([(NSString*)[dataLineParts objectAtIndex:8] intValue] + [(NSString*)[dataLineParts objectAtIndex:9] intValue]) / 2;
+          int meanWind = [(NSString*)[dataLineParts objectAtIndex:3] intValue];
+          int gustWind = [(NSString*)[dataLineParts objectAtIndex:4] intValue];
           
           NSNumber *nAverageTemp = [[NSNumber alloc] initWithInt:averageTemp];
           NSNumber *nMeanWind = [[NSNumber alloc] initWithInt:meanWind];
@@ -205,14 +210,14 @@ BOOL finished;
           
           AWSReading *awsReading = [[AWSReading alloc] init];
           
-          // 2010-03-25'T'06:48Z
-          int l = 5 - [[temp objectAtIndex:0] length];
-          NSString *day = [[temp objectAtIndex:0] substringWithRange: NSMakeRange(0, (2 - l))];
-          NSString *month = [[temp objectAtIndex:0] substringWithRange: NSMakeRange((2 - l), ([[temp objectAtIndex:0] length] - 1))];
+          // 17Apr
+          int l = 5 - [[dataLineParts objectAtIndex:0] length];
+          NSString *day = [[dataLineParts objectAtIndex:0] substringWithRange: NSMakeRange(0, (2 - l))];
+          NSString *month = [[dataLineParts objectAtIndex:0] substringWithRange: NSMakeRange((2 - l), ([[dataLineParts objectAtIndex:0] length] - 2))];
           
           // 0548
-          NSString *hour = [[temp objectAtIndex:2] substringWithRange: NSMakeRange(0, 2)];
-          NSString *minute = [[temp objectAtIndex:2] substringWithRange: NSMakeRange(2, 2)];
+          NSString *hour = [[dataLineParts objectAtIndex:2] substringWithRange: NSMakeRange(0, 2)];
+          NSString *minute = [[dataLineParts objectAtIndex:2] substringWithRange: NSMakeRange(2, 2)];
           
           NSDateComponents *components = [[NSDateComponents alloc] init];
           [components setYear:2010];
@@ -225,15 +230,15 @@ BOOL finished;
           [components release];
           [gregorian release];
           
-          awsReading.julianDay = [temp objectAtIndex:1];
-          awsReading.meanWindSpeed = [temp objectAtIndex:3];
-          awsReading.maxWindSpeed = [temp objectAtIndex:4];
-          awsReading.minWindSpeed = [temp objectAtIndex:5];
-          awsReading.windDirection = [temp objectAtIndex:6];
+          awsReading.julianDay = [dataLineParts objectAtIndex:1];
+          awsReading.meanWindSpeed = [dataLineParts objectAtIndex:3];
+          awsReading.maxWindSpeed = [dataLineParts objectAtIndex:4];
+          awsReading.minWindSpeed = [dataLineParts objectAtIndex:5];
+          awsReading.windDirection = [dataLineParts objectAtIndex:6];
           awsReading.averageTemperature = nAverageTemp;
           [awsReadingsTemp addObject:awsReading];
           
-          NSString *date = [temp objectAtIndex:0];
+          NSString *date = [dataLineParts objectAtIndex:0];
           if (count == 0) {
             NSNumber *maxTemperatureHolder = [[NSNumber alloc] initWithInt:averageTemp];
             self.maxTemperature = maxTemperatureHolder;
@@ -248,7 +253,7 @@ BOOL finished;
             self.endDate = endDateHolder;
             [endDateHolder release];
             
-            NSString *endTimeHolder = [[NSString alloc] initWithFormat:@"%@", [temp objectAtIndex:2]];
+            NSString *endTimeHolder = [[NSString alloc] initWithFormat:@"%@", [dataLineParts objectAtIndex:2]];
             self.endTime = endTimeHolder;
             [endTimeHolder release];
           }
@@ -273,7 +278,7 @@ BOOL finished;
           self.startDate = startDateHolder;
           [startDateHolder release];
           
-          NSString *startTimeHolder = [[NSString alloc] initWithFormat:@"%@", [temp objectAtIndex:2]];
+          NSString *startTimeHolder = [[NSString alloc] initWithFormat:@"%@", [dataLineParts objectAtIndex:2]];
           self.startTime = startTimeHolder;
           [startTimeHolder release];
           
